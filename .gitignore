@@ -1,0 +1,8 @@
+# Golang
+/backend/backend
+*.exe
+*.out
+*.test
+
+# Fisiere sistem
+.DS_Store
