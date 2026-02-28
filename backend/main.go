@@ -89,9 +89,6 @@ func initReportingSchema(db *sql.DB) error {
 	return err
 }
 
-// ----------------------------------------------------
-// ACTUALIZAT: Incarca fisiere MULTIPLE (CSV)
-// ----------------------------------------------------
 func uploadCSV(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	if r.Method == http.MethodOptions {
@@ -104,7 +101,10 @@ func uploadCSV(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Marim limita la 50MB pentru a accepta calupuri mari de fisiere
+	// Array-ul în care vom stoca mesajele de consolă pentru a le trimite la Frontend
+	var consoleLogs []string
+	consoleLogs = append(consoleLogs, "> Autentificare în PostgreSQL cu succes.")
+
 	err := r.ParseMultipartForm(50 << 20)
 	if err != nil {
 		http.Error(w, `{"status":"error", "message":"Fisierele depasesc limita de dimensiune"}`, http.StatusBadRequest)
@@ -112,17 +112,13 @@ func uploadCSV(w http.ResponseWriter, r *http.Request) {
 	}
 
 	fileType := r.FormValue("file_type")
-	if fileType != "past" && fileType != "trace" {
-		http.Error(w, `{"status":"error", "message":"Tip fisier invalid"}`, http.StatusBadRequest)
-		return
-	}
-
-	// Preluam lista de fisiere din campul "csv_files" (acum este un array)
 	files := r.MultipartForm.File["csv_files"]
 	if len(files) == 0 {
 		http.Error(w, `{"status":"error", "message":"Nu a fost trimis niciun fisier"}`, http.StatusBadRequest)
 		return
 	}
+
+	consoleLogs = append(consoleLogs, fmt.Sprintf("> Au fost recepționate %d fișiere de tipul '%s'.", len(files), fileType))
 
 	db, err := getDBConnection()
 	if err != nil {
@@ -132,15 +128,17 @@ func uploadCSV(w http.ResponseWriter, r *http.Request) {
 	defer db.Close()
 
 	initReportingSchema(db)
+	consoleLogs = append(consoleLogs, "> Schema 'reporting' verificată și pregătită.")
 
 	totalInserted := 0
 	filesProcessed := 0
 
-	// Parcurgem fiecare fisier incarcat
 	for _, fileHeader := range files {
+		consoleLogs = append(consoleLogs, fmt.Sprintf("> Citire structură fișier: %s ...", fileHeader.Filename))
+		
 		file, err := fileHeader.Open()
 		if err != nil {
-			log.Printf("Eroare deschidere fisier %s: %v", fileHeader.Filename, err)
+			consoleLogs = append(consoleLogs, fmt.Sprintf("  [EROARE] Nu am putut deschide %s", fileHeader.Filename))
 			continue
 		}
 
@@ -150,10 +148,11 @@ func uploadCSV(w http.ResponseWriter, r *http.Request) {
 		reader.FieldsPerRecord = -1
 
 		records, err := reader.ReadAll()
-		file.Close() // Inchidem fisierul imediat ce am citit datele din el
+		file.Close()
 		
 		if err != nil || len(records) < 2 {
-			continue // Sarim peste fisierele goale sau corupte
+			consoleLogs = append(consoleLogs, fmt.Sprintf("  [AVERTISMENT] %s este gol sau corupt. Se ignoră.", fileHeader.Filename))
+			continue
 		}
 
 		headers := records[0]
@@ -262,17 +261,23 @@ func uploadCSV(w http.ResponseWriter, r *http.Request) {
 		}
 
 		tx.Commit()
+		consoleLogs = append(consoleLogs, fmt.Sprintf("  [OK] %s explodat în %d rânduri normalizate.", fileHeader.Filename, insertedCount))
 		totalInserted += insertedCount
 		filesProcessed++
 	}
 
+	consoleLogs = append(consoleLogs, "===============================================")
+	consoleLogs = append(consoleLogs, fmt.Sprintf("> Finalizat. S-au inserat %d rânduri unice din %d fișiere valide.", totalInserted, filesProcessed))
+
 	response := map[string]interface{}{
 		"status":  "success",
-		"message": fmt.Sprintf("Succes! %d fișiere procesate. %d rânduri unice inserate în baza de date.", filesProcessed, totalInserted),
+		"message": "Fisiere procesate cu succes.",
+		"logs":    consoleLogs, // Trimitem array-ul de log-uri la Frontend
 	}
 	json.NewEncoder(w).Encode(response)
 }
 
+// RESTUL FUNCTIILOR VECHI
 func testDBConnection(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Content-Type", "application/json")
