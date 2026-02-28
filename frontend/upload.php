@@ -16,12 +16,10 @@
         
         #file-count { margin-top: 5px; font-size: 13px; color: #0078D4; font-weight: bold; display: block; }
 
-        /* Stiluri pentru Bara de progres */
         .progress-container { width: 100%; background-color: #e0e0e0; border-radius: 5px; margin-top: 20px; display: none; overflow: hidden; position: relative; height: 25px; }
         .progress-bar { height: 100%; background-color: #28a745; width: 0%; transition: width 0.3s ease; }
         .progress-text { position: absolute; top: 3px; left: 50%; transform: translateX(-50%); color: #000; font-weight: bold; font-size: 14px; }
 
-        /* Stiluri pentru Consola (Terminal) */
         .console-container { background-color: #1e1e1e; color: #4af626; font-family: 'Courier New', Courier, monospace; font-size: 13px; padding: 15px; border-radius: 5px; margin-top: 20px; height: 200px; overflow-y: auto; display: none; box-shadow: inset 0 0 10px #000; }
         .console-line { margin: 3px 0; }
         
@@ -80,7 +78,6 @@
         p.className = 'console-line';
         p.textContent = text;
         consoleDiv.appendChild(p);
-        // Face scroll automat jos
         consoleDiv.scrollTop = consoleDiv.scrollHeight; 
     }
 
@@ -98,7 +95,6 @@
             return;
         }
 
-        // Resetam interfata
         msgBox.style.display = "none";
         consoleDiv.innerHTML = "";
         consoleDiv.style.display = "block";
@@ -106,19 +102,17 @@
         progressBar.style.width = "0%";
         progressText.textContent = "0%";
 
-        addLogToConsole("> Pregătire fișiere pentru încărcare rețea...");
+        addLogToConsole("> Se preia comanda. Vă rugăm nu închideți pagina...");
 
         const formData = new FormData();
         formData.append("file_type", fileType);
         for (let i = 0; i < fileInput.files.length; i++) {
             formData.append("csv_files", fileInput.files[i]);
-            addLogToConsole(`> Coada: ${fileInput.files[i].name} (${(fileInput.files[i].size / 1024).toFixed(1)} KB)`);
         }
 
         const xhr = new XMLHttpRequest();
         const backendUrl = `http://${window.location.hostname}:8080/api/upload-csv`;
 
-        // Urmarim progresul incarcarii fișierului in retea
         xhr.upload.addEventListener("progress", function(evt) {
             if (evt.lengthComputable) {
                 let percentComplete = Math.round((evt.loaded / evt.total) * 100);
@@ -126,29 +120,22 @@
                 progressText.textContent = percentComplete + "%";
                 
                 if (percentComplete === 100) {
-                    progressText.textContent = "Se procesează în baza de date...";
+                    progressText.textContent = "Golang inserează datele...";
                     addLogToConsole("\n> Încărcare în rețea completă (100%).");
-                    addLogToConsole("> Se așteaptă procesarea datelor în Golang și PostgreSQL...");
+                    addLogToConsole("> ATENȚIE: Inserarea a 50+ fișiere (zeci de mii de rânduri) în baza de date poate dura de la 30 secunde până la câteva minute. Vă rugăm așteptați!");
                 }
             }
         });
 
-        // Cand primim raspunsul de la Go
         xhr.addEventListener("load", function() {
             if (xhr.status === 200) {
                 try {
                     const response = JSON.parse(xhr.responseText);
                     if (response.status === "success") {
-                        // Printam toate logurile returnate de Go
-                        response.logs.forEach(log => {
-                            addLogToConsole(log);
-                        });
-
+                        response.logs.forEach(log => { addLogToConsole(log); });
                         msgBox.className = "status-badge success";
                         msgBox.innerHTML = "✅ " + response.message;
                         msgBox.style.display = "block";
-                        
-                        // Curatam inputul
                         fileInput.value = ""; 
                         updateFileCount();
                     } else {
@@ -168,7 +155,6 @@
             }
         });
 
-        // Erori de conexiune
         xhr.addEventListener("error", function() {
             addLogToConsole("\n[CRITICAL] Nu s-a putut conecta la serverul backend.");
             msgBox.className = "status-badge error";
@@ -176,7 +162,6 @@
             msgBox.style.display = "block";
         });
 
-        // Trimitem cererea POST
         xhr.open("POST", backendUrl);
         xhr.send(formData);
     }
