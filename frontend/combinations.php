@@ -24,10 +24,10 @@
 <body>
 
 <div class="box">
-    <h2>📊 Tabela: ss02.combinations</h2>
+    <h2>📊 Tabela: reporting.vran_combinations (unpivot paper1-5)</h2>
     
     <div class="filter-panel">
-        <label for="start_date">De la data (StartRun):</label>
+        <label for="start_date">De la data (start_run):</label>
         <input type="date" id="start_date">
         
         <label for="end_date">Până la data:</label>
@@ -55,29 +55,31 @@
             movableColumns: true,
             placeholder: "Alegeți un interval de date și apăsați 'Adu Datele'", // Mesajul când e gol
             columns: [
-                { title: "ID", field: "ID", headerFilter: "input", frozen: true },
-                { title: "MachineID", field: "MachineID", headerFilter: "input" },
-                { title: "ShiftID", field: "ShiftID", headerFilter: "input" },
-                { title: "BoardGradeID", field: "BoardGradeID", headerFilter: "input" },
-                { title: "ProgNumber", field: "ProgramNumber", headerFilter: "input" },
-                { title: "RunNumber", field: "RunNumber", headerFilter: "input" },
-                { title: "Status", field: "Status", headerFilter: "input" },
-                { title: "SchedDate", field: "ScheduleDate", headerFilter: "input" },
-                { title: "SchedMeters", field: "ScheduleMeters", headerFilter: "input" },
-                { title: "Rollsize", field: "Rollsize", headerFilter: "input" },
-                { title: "StartRun", field: "StartRun", headerFilter: "input" },
-                { title: "EndRun", field: "EndRun", headerFilter: "input" },
-                { title: "RunMeters", field: "RunMeters", headerFilter: "input" },
-                { title: "SchedStatus", field: "ScheduleStatus", headerFilter: "input" },
-                { title: "GivenSpeed", field: "GivenSpeed", headerFilter: "input" },
-                { title: "IsConfirmed", field: "IsConfirmed", formatter: "tickCross", hozAlign: "center", headerFilter: "tickCross", headerFilterParams: { tristate: true } },
-                { title: "EstimSpeed", field: "EstimSpeed", headerFilter: "input" },
-                { title: "EstimTargetSpd", field: "EstimTargetSpeed", headerFilter: "input" },
-                { title: "WasteArea", field: "WasteArea", headerFilter: "input" },
-                { title: "NumScoreShafts", field: "NumScoreShafts", headerFilter: "input" },
-                { title: "CombLinkID", field: "CombLinkID", headerFilter: "input" },
-                { title: "CorrRunID", field: "CorrRunID", headerFilter: "input" },
-                { title: "FCRParentID", field: "FCRParentID", headerFilter: "input" }
+                { title: "ID", field: "id", headerFilter: "input", frozen: true },
+                { title: "PaperNr", field: "paper_number", headerFilter: "input" },
+                { title: "Paper", field: "paper", headerFilter: "input" },
+                { title: "FosberID", field: "fosber_id", headerFilter: "input" },
+                { title: "MachineCode", field: "machine_code", headerFilter: "input" },
+                { title: "MachineName", field: "machine_name", headerFilter: "input" },
+                { title: "ProgNumber", field: "program_number", headerFilter: "input" },
+                { title: "RunNumber", field: "run_number", headerFilter: "input" },
+                { title: "OrderNumber", field: "order_number", headerFilter: "input" },
+                { title: "Code", field: "code", headerFilter: "input" },
+                { title: "Status", field: "status", headerFilter: "input" },
+                { title: "SchedStatus", field: "schedule_status", headerFilter: "input" },
+                { title: "SchedDate", field: "schedule_date", headerFilter: "input" },
+                { title: "StartRun", field: "start_run", headerFilter: "input" },
+                { title: "EndRun", field: "end_run", headerFilter: "input" },
+                { title: "SchedMeters", field: "schedule_meters", headerFilter: "input" },
+                { title: "RunMeters", field: "run_meters", headerFilter: "input" },
+                { title: "Rollsize", field: "rollsize", headerFilter: "input" },
+                { title: "Outs", field: "outs", headerFilter: "input" },
+                { title: "SheetsScheduled", field: "sheets_scheduled", headerFilter: "input" },
+                { title: "SheetsProduced", field: "sheets_produced", headerFilter: "input" },
+                { title: "GoodSheetsProduced", field: "good_sheets_produced", headerFilter: "input" },
+                { title: "M0Divisor", field: "m0_divisor", headerFilter: "input" },
+                { title: "WasteArea", field: "waste_area", headerFilter: "input" },
+                { title: "TrimMM", field: "trim_mm", headerFilter: "input" },
             ],
         });
     });

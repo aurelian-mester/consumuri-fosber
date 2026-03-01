@@ -321,7 +321,25 @@ func getCombinations(w http.ResponseWriter, r *http.Request) {
 	db, err := getDBConnection()
 	if err != nil { return }
 	defer db.Close()
-	query := `SELECT * FROM ss02.combinations WHERE "StartRun" >= $1 AND "StartRun" <= $2 ORDER BY "StartRun" DESC`
+	query := `
+		SELECT
+			m0_divisor, program_number, run_number, schedule_date, start_run, end_run,
+			status, schedule_status, outs, sheets_scheduled, sheets_produced,
+			good_sheets_produced, id, rollsize, schedule_meters, run_meters,
+			waste_area, trim_mm, fosber_id, code, order_number, machine_code, machine_name,
+			p.paper_number, p.paper
+		FROM reporting.vran_combinations
+		CROSS JOIN LATERAL (VALUES
+			(1, paper1),
+			(2, paper2),
+			(3, paper3),
+			(4, paper4),
+			(5, paper5)
+		) AS p(paper_number, paper)
+		WHERE start_run >= $1 AND start_run <= $2
+		  AND p.paper IS NOT NULL AND TRIM(p.paper) <> ''
+		ORDER BY start_run DESC, id, p.paper_number
+	`
 	rows, err := db.Query(query, startDateTime, endDateTime)
 	if err != nil { return }
 	defer rows.Close()
